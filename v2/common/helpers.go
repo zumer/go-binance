@@ -3,7 +3,9 @@ package common
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
 
@@ -12,7 +14,7 @@ func AmountToLotSize(amount, minQty, stepSize string, precision int) string {
 	amountDec := decimal.RequireFromString(amount)
 	minQtyDec := decimal.RequireFromString(minQty)
 	baseAmountDec := amountDec.Sub(minQtyDec)
-	if baseAmountDec.LessThan(decimal.RequireFromString("0")) {
+	if baseAmountDec.LessThan(decimal.Zero) {
 		return "0"
 	}
 	stepSizeDec := decimal.RequireFromString(stepSize)
@@ -32,7 +34,7 @@ func ToJSONList(v []byte) []byte {
 	return v
 }
 
-func ToInt(digit interface{}) (i int, err error) {
+func ToInt(digit any) (i int, err error) {
 	if intVal, ok := digit.(int); ok {
 		return int(intVal), nil
 	}
@@ -42,7 +44,7 @@ func ToInt(digit interface{}) (i int, err error) {
 	return 0, fmt.Errorf("unexpected digit: %v", digit)
 }
 
-func ToInt64(digit interface{}) (i int64, err error) {
+func ToInt64(digit any) (i int64, err error) {
 	if intVal, ok := digit.(int); ok {
 		return int64(intVal), nil
 	}
@@ -50,4 +52,25 @@ func ToInt64(digit interface{}) (i int64, err error) {
 		return int64(floatVal), nil
 	}
 	return 0, fmt.Errorf("unexpected digit: %v", digit)
+}
+
+const (
+	SPOT_ORDER_PREFIX     = "x-B3AUXNYV"
+	CONTRACT_ORDER_PREFIX = "x-ftGmvgAN"
+)
+
+func BaseUID() string {
+	return strings.ReplaceAll(uuid.New().String(), "-", "")
+}
+
+func Uuid22() string {
+	return BaseUID()[:22]
+}
+
+func GenerateSpotId() string {
+	return SPOT_ORDER_PREFIX + Uuid22()
+}
+
+func GenerateSwapId() string {
+	return CONTRACT_ORDER_PREFIX + Uuid22()
 }
